@@ -1,0 +1,1716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UK Police Command & Control System - GENESIS</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0e27;
+            color: #e0e0e0;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .top-bar {
+            background: linear-gradient(135deg, #1a1f3a 0%, #0d1028 100%);
+            border-bottom: 2px solid #2196F3;
+            padding: 8px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(33, 150, 243, 0.3);
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 24px;
+            color: white;
+            box-shadow: 0 0 20px rgba(33, 150, 243, 0.5);
+        }
+
+        .system-title {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .system-title h1 {
+            font-size: 20px;
+            font-weight: 700;
+            background: linear-gradient(90deg, #2196F3, #64B5F6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .system-title .subtitle {
+            font-size: 11px;
+            color: #90CAF9;
+            letter-spacing: 2px;
+        }
+
+        .status-indicators {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .status-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .status-label {
+            font-size: 10px;
+            color: #90CAF9;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .status-value {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .status-value.online {
+            color: #4CAF50;
+        }
+
+        .status-value.warning {
+            color: #FFC107;
+        }
+
+        .status-value.critical {
+            color: #F44336;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(33, 150, 243, 0.1);
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: 1px solid rgba(33, 150, 243, 0.3);
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .main-container {
+            display: grid;
+            grid-template-columns: 320px 1fr 380px;
+            height: calc(100vh - 70px);
+            gap: 0;
+        }
+
+        .sidebar {
+            background: #0d1028;
+            border-right: 1px solid #1e2749;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sidebar-tabs {
+            display: flex;
+            background: #0a0e27;
+            border-bottom: 1px solid #1e2749;
+        }
+
+        .sidebar-tab {
+            flex: 1;
+            padding: 12px;
+            background: transparent;
+            border: none;
+            color: #90CAF9;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 2px solid transparent;
+        }
+
+        .sidebar-tab:hover {
+            background: rgba(33, 150, 243, 0.1);
+        }
+
+        .sidebar-tab.active {
+            color: #2196F3;
+            border-bottom: 2px solid #2196F3;
+            background: rgba(33, 150, 243, 0.05);
+        }
+
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        .incident-card {
+            background: linear-gradient(135deg, #1a1f3a 0%, #12172e 100%);
+            border: 1px solid #2196F3;
+            border-left: 4px solid #2196F3;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .incident-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.4);
+        }
+
+        .incident-card.priority-1 {
+            border-left-color: #F44336;
+            border-color: rgba(244, 67, 54, 0.5);
+            animation: pulse-red 2s infinite;
+        }
+
+        .incident-card.priority-2 {
+            border-left-color: #FF9800;
+            border-color: rgba(255, 152, 0, 0.5);
+        }
+
+        .incident-card.priority-3 {
+            border-left-color: #FFC107;
+            border-color: rgba(255, 193, 7, 0.5);
+        }
+
+        @keyframes pulse-red {
+            0%, 100% {
+                box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
+            }
+            50% {
+                box-shadow: 0 4px 20px rgba(244, 67, 54, 0.8);
+            }
+        }
+
+        .incident-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .incident-id {
+            font-weight: bold;
+            color: #2196F3;
+            font-size: 13px;
+        }
+
+        .incident-time {
+            font-size: 11px;
+            color: #90CAF9;
+        }
+
+        .incident-type {
+            font-size: 12px;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 6px;
+        }
+
+        .incident-location {
+            font-size: 11px;
+            color: #B0BEC5;
+            margin-bottom: 8px;
+        }
+
+        .incident-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 10px;
+        }
+
+        .incident-units {
+            color: #4CAF50;
+        }
+
+        .incident-priority {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .priority-1 .incident-priority {
+            background: rgba(244, 67, 54, 0.2);
+            color: #F44336;
+        }
+
+        .priority-2 .incident-priority {
+            background: rgba(255, 152, 0, 0.2);
+            color: #FF9800;
+        }
+
+        .priority-3 .incident-priority {
+            background: rgba(255, 193, 7, 0.2);
+            color: #FFC107;
+        }
+
+        .center-panel {
+            display: flex;
+            flex-direction: column;
+            background: #0a0e27;
+        }
+
+        .map-controls {
+            background: #0d1028;
+            border-bottom: 1px solid #1e2749;
+            padding: 10px 15px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .control-btn {
+            background: linear-gradient(135deg, #1a1f3a, #12172e);
+            border: 1px solid #2196F3;
+            color: #2196F3;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .control-btn:hover {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            color: white;
+            box-shadow: 0 0 15px rgba(33, 150, 243, 0.5);
+        }
+
+        .control-btn.active {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            color: white;
+        }
+
+        .map-container {
+            flex: 1;
+            position: relative;
+            background: #1a1f3a;
+            overflow: hidden;
+        }
+
+        .map-canvas {
+            width: 100%;
+            height: 100%;
+            background: 
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 50px,
+                    rgba(33, 150, 243, 0.03) 50px,
+                    rgba(33, 150, 243, 0.03) 51px
+                ),
+                repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 50px,
+                    rgba(33, 150, 243, 0.03) 50px,
+                    rgba(33, 150, 243, 0.03) 51px
+                ),
+                linear-gradient(135deg, #0d1028 0%, #1a1f3a 100%);
+            position: relative;
+        }
+
+        .map-marker {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 16px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .map-marker:hover {
+            transform: scale(1.3);
+            z-index: 100;
+        }
+
+        .marker-unit {
+            background: radial-gradient(circle, #2196F3, #1565C0);
+            border: 3px solid #0D47A1;
+            animation: pulse-blue 2s infinite;
+        }
+
+        .marker-incident {
+            background: radial-gradient(circle, #F44336, #C62828);
+            border: 3px solid #B71C1C;
+            animation: pulse-red 2s infinite;
+        }
+
+        .marker-camera {
+            background: radial-gradient(circle, #4CAF50, #2E7D32);
+            border: 3px solid #1B5E20;
+        }
+
+        @keyframes pulse-blue {
+            0%, 100% {
+                box-shadow: 0 0 10px rgba(33, 150, 243, 0.5);
+            }
+            50% {
+                box-shadow: 0 0 25px rgba(33, 150, 243, 1);
+            }
+        }
+
+        .right-panel {
+            background: #0d1028;
+            border-left: 1px solid #1e2749;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .panel-tabs {
+            display: flex;
+            background: #0a0e27;
+            border-bottom: 1px solid #1e2749;
+        }
+
+        .panel-tab {
+            flex: 1;
+            padding: 12px;
+            background: transparent;
+            border: none;
+            color: #90CAF9;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 2px solid transparent;
+        }
+
+        .panel-tab:hover {
+            background: rgba(33, 150, 243, 0.1);
+        }
+
+        .panel-tab.active {
+            color: #2196F3;
+            border-bottom: 2px solid #2196F3;
+            background: rgba(33, 150, 243, 0.05);
+        }
+
+        .panel-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        .info-section {
+            background: linear-gradient(135deg, #1a1f3a 0%, #12172e 100%);
+            border: 1px solid rgba(33, 150, 243, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .info-section h3 {
+            color: #2196F3;
+            font-size: 13px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid rgba(33, 150, 243, 0.2);
+            padding-bottom: 8px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 12px;
+        }
+
+        .info-label {
+            color: #90CAF9;
+        }
+
+        .info-value {
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .unit-card {
+            background: linear-gradient(135deg, #1a1f3a 0%, #12172e 100%);
+            border: 1px solid rgba(33, 150, 243, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+
+        .unit-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .unit-id {
+            font-weight: bold;
+            color: #2196F3;
+            font-size: 14px;
+        }
+
+        .unit-status {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .unit-status.available {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4CAF50;
+        }
+
+        .unit-status.busy {
+            background: rgba(244, 67, 54, 0.2);
+            color: #F44336;
+        }
+
+        .unit-status.enroute {
+            background: rgba(255, 193, 7, 0.2);
+            color: #FFC107;
+        }
+
+        .unit-info {
+            font-size: 11px;
+            color: #B0BEC5;
+        }
+
+        .intel-feed {
+            background: linear-gradient(135deg, #1a1f3a 0%, #12172e 100%);
+            border: 1px solid rgba(33, 150, 243, 0.3);
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
+            font-size: 11px;
+        }
+
+        .intel-feed.high-priority {
+            border-left: 4px solid #F44336;
+        }
+
+        .intel-timestamp {
+            color: #90CAF9;
+            font-size: 10px;
+            margin-bottom: 5px;
+        }
+
+        .intel-content {
+            color: #fff;
+        }
+
+        .comms-panel {
+            background: #0a0e27;
+            border-top: 1px solid #1e2749;
+            padding: 12px;
+        }
+
+        .message-input {
+            width: 100%;
+            background: #1a1f3a;
+            border: 1px solid #2196F3;
+            color: #fff;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            resize: none;
+        }
+
+        .message-input:focus {
+            outline: none;
+            box-shadow: 0 0 10px rgba(33, 150, 243, 0.5);
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .quick-action-btn {
+            background: linear-gradient(135deg, #1a1f3a, #12172e);
+            border: 1px solid #2196F3;
+            color: #2196F3;
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .quick-action-btn:hover {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            color: white;
+        }
+
+        .alert-bar {
+            background: linear-gradient(90deg, #F44336, #D32F2F);
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            font-weight: bold;
+            animation: alert-pulse 1.5s infinite;
+            display: none;
+        }
+
+        .alert-bar.active {
+            display: block;
+        }
+
+        @keyframes alert-pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0d1028;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #2196F3;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #1976D2;
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, #1a1f3a 0%, #12172e 100%);
+            border: 1px solid rgba(33, 150, 243, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2196F3;
+            margin-bottom: 5px;
+        }
+
+        .metric-label {
+            font-size: 10px;
+            color: #90CAF9;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .anpr-alert {
+            background: linear-gradient(135deg, #F44336, #D32F2F);
+            border: 2px solid #B71C1C;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            animation: pulse-red 2s infinite;
+        }
+
+        .anpr-plate {
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+            text-align: center;
+            margin-bottom: 8px;
+            letter-spacing: 3px;
+        }
+
+        .anpr-details {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .timeline-event {
+            border-left: 3px solid #2196F3;
+            padding-left: 12px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .timeline-event::before {
+            content: '';
+            position: absolute;
+            left: -7px;
+            top: 0;
+            width: 12px;
+            height: 12px;
+            background: #2196F3;
+            border-radius: 50%;
+            border: 2px solid #0a0e27;
+        }
+
+        .timeline-time {
+            font-size: 11px;
+            color: #90CAF9;
+            margin-bottom: 5px;
+        }
+
+        .timeline-desc {
+            font-size: 12px;
+            color: #fff;
+        }
+
+        .resource-bar {
+            background: #1a1f3a;
+            border-radius: 4px;
+            height: 20px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .resource-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #2E7D32);
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #F44336;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="alert-bar" id="alertBar">🚨 MAJOR INCIDENT DECLARED - ALL UNITS STANDBY 🚨</div>
+    
+    <div class="top-bar">
+        <div class="logo-section">
+            <div class="logo">🚔</div>
+            <div class="system-title">
+                <h1>GENESIS CAD</h1>
+                <div class="subtitle">Computer Aided Dispatch v4.7</div>
+            </div>
+        </div>
+        
+        <div class="status-indicators">
+            <div class="status-item">
+                <div class="status-label">System</div>
+                <div class="status-value online">ONLINE</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">Network</div>
+                <div class="status-value online">SECURE</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">Active Units</div>
+                <div class="status-value warning">47</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">Live Incidents</div>
+                <div class="status-value critical">23</div>
+            </div>
+        </div>
+
+        <div class="user-info">
+            <div class="user-avatar">DC</div>
+            <div>
+                <div style="font-size: 12px; font-weight: bold;">DS Cooper</div>
+                <div style="font-size: 10px; color: #90CAF9;">Met Police - Central Dispatch</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <!-- Left Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-tabs">
+                <button class="sidebar-tab active" onclick="switchSidebarTab('incidents', this)">Incidents</button>
+                <button class="sidebar-tab" onclick="switchSidebarTab('queue', this)">Queue</button>
+                <button class="sidebar-tab" onclick="switchSidebarTab('history', this)">History</button>
+            </div>
+            
+            <div class="sidebar-content" id="sidebarContent">
+                <div class="incident-card priority-1">
+                    <div class="incident-header">
+                        <span class="incident-id">INC-2026-00742</span>
+                        <span class="incident-time">18:34</span>
+                    </div>
+                    <div class="incident-type">🚨 ARMED ROBBERY IN PROGRESS</div>
+                    <div class="incident-location">📍 Barclays Bank, 42 High Street, Camden, NW1 7JR</div>
+                    <div class="incident-footer">
+                        <span class="incident-units">👮 4 units responding</span>
+                        <span class="incident-priority">Grade 1</span>
+                    </div>
+                </div>
+
+                <div class="incident-card priority-1">
+                    <div class="incident-header">
+                        <span class="incident-id">INC-2026-00741</span>
+                        <span class="incident-time">18:31</span>
+                    </div>
+                    <div class="incident-type">🚗 VEHICLE PURSUIT</div>
+                    <div class="incident-location">📍 A40 Westway, heading towards Shepherd's Bush</div>
+                    <div class="incident-footer">
+                        <span class="incident-units">👮 5 units + 🚁 NPAS</span>
+                        <span class="incident-priority">Grade 1</span>
+                    </div>
+                </div>
+
+                <div class="incident-card priority-2">
+                    <div class="incident-header">
+                        <span class="incident-id">INC-2026-00740</span>
+                        <span class="incident-time">18:28</span>
+                    </div>
+                    <div class="incident-type">🏠 DOMESTIC DISTURBANCE</div>
+                    <div class="incident-location">📍 Flat 7B, Churchill Gardens Estate, SW1V 3AG</div>
+                    <div class="incident-footer">
+                        <span class="incident-units">👮 2 units assigned</span>
+                        <span class="incident-priority">Grade 2</span>
+                    </div>
+                </div>
+
+                <div class="incident-card priority-2">
+                    <div class="incident-header">
+                        <span class="incident-id">INC-2026-00738</span>
+                        <span class="incident-time">18:22</span>
+                    </div>
+                    <div class="incident-type">🔪 WEAPON REPORT</div>
+                    <div class="incident-location">📍 Kings Cross Station, N1C 4AP</div>
+                    <div class="incident-footer">
+                        <span class="incident-units">👮 3 units + 🐕 K9</span>
+                        <span class="incident-priority">Grade 2</span>
+                    </div>
+                </div>
+
+                <div class="incident-card priority-3">
+                    <div class="incident-header">
+                        <span class="incident-id">INC-2026-00737</span>
+                        <span class="incident-time">18:15</span>
+                    </div>
+                    <div class="incident-type">🚗 TRAFFIC COLLISION - NO INJURIES</div>
+                    <div class="incident-location">📍 Junction of Oxford St & Tottenham Court Rd, W1D 1BS</div>
+                    <div class="incident-footer">
+                        <span class="incident-units">👮 1 unit assigned</span>
+                        <span class="incident-priority">Grade 3</span>
+                    </div>
+                </div>
+
+                <div class="incident-card priority-3">
+                    <div class="incident-header">
+                        <span class="incident-id">INC-2026-00735</span>
+                        <span class="incident-time">18:09</span>
+                    </div>
+                    <div class="incident-type">🏪 SHOPLIFTING REPORT</div>
+                    <div class="incident-location">📍 Tesco Metro, 159 Victoria Street, SW1E 5NA</div>
+                    <div class="incident-footer">
+                        <span class="incident-units">👮 1 unit queued</span>
+                        <span class="incident-priority">Grade 3</span>
+                    </div>
+                </div>
+
+                <div class="incident-card priority-2">
+                    <div class="incident-header">
+                        <span class="incident-id">INC-2026-00734</span>
+                        <span class="incident-time">18:03</span>
+                    </div>
+                    <div class="incident-type">🚨 BURGLARY ALARM ACTIVATION</div>
+                    <div class="incident-location">📍 JD Sports, Westfield Shopping Centre, W12 7GF</div>
+                    <div class="incident-footer">
+                        <span class="incident-units">👮 2 units responding</span>
+                        <span class="incident-priority">Grade 2</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Center Panel - Map -->
+        <div class="center-panel">
+            <div class="map-controls">
+                <button class="control-btn active">🗺️ Live Map</button>
+                <button class="control-btn">📹 CCTV Grid</button>
+                <button class="control-btn">📊 Heat Map</button>
+                <button class="control-btn">🚁 NPAS View</button>
+                <button class="control-btn">🚦 Traffic Flow</button>
+                <button class="control-btn">📡 ANPR Network</button>
+                <button class="control-btn">⚠️ Risk Zones</button>
+                <select class="control-btn" style="width: auto;">
+                    <option>All Boroughs</option>
+                    <option>Westminster</option>
+                    <option>Camden</option>
+                    <option>Islington</option>
+                    <option>Tower Hamlets</option>
+                </select>
+            </div>
+            
+            <div class="map-container">
+                <div class="map-canvas" id="mapCanvas">
+                    <!-- Police Units -->
+                    <div class="map-marker marker-unit" style="left: 25%; top: 30%;" title="Unit Alpha-7">🚔</div>
+                    <div class="map-marker marker-unit" style="left: 45%; top: 45%;" title="Unit Bravo-3">🚔</div>
+                    <div class="map-marker marker-unit" style="left: 65%; top: 25%;" title="Unit Charlie-9">🚔</div>
+                    <div class="map-marker marker-unit" style="left: 35%; top: 60%;" title="Unit Delta-2">🚔</div>
+                    <div class="map-marker marker-unit" style="left: 70%; top: 70%;" title="Unit Echo-5">🚔</div>
+                    <div class="map-marker marker-unit" style="left: 15%; top: 50%;" title="Unit Foxtrot-1">🚓</div>
+                    <div class="map-marker marker-unit" style="left: 55%; top: 35%;" title="Unit Golf-8">🚓</div>
+                    <div class="map-marker marker-unit" style="left: 80%; top: 45%;" title="Unit Hotel-4">🚓</div>
+                    
+                    <!-- Incidents -->
+                    <div class="map-marker marker-incident" style="left: 40%; top: 40%;" title="Armed Robbery">⚠️</div>
+                    <div class="map-marker marker-incident" style="left: 60%; top: 55%;" title="Vehicle Pursuit">🚨</div>
+                    <div class="map-marker marker-incident" style="left: 30%; top: 75%;" title="Domestic">⚡</div>
+                    
+                    <!-- CCTV Cameras -->
+                    <div class="map-marker marker-camera" style="left: 20%; top: 20%;" title="CCTV-142">📹</div>
+                    <div class="map-marker marker-camera" style="left: 50%; top: 15%;" title="CCTV-087">📹</div>
+                    <div class="map-marker marker-camera" style="left: 75%; top: 35%;" title="CCTV-203">📹</div>
+                    <div class="map-marker marker-camera" style="left: 85%; top: 60%;" title="CCTV-156">📹</div>
+                    <div class="map-marker marker-camera" style="left: 40%; top: 80%;" title="CCTV-091">📹</div>
+                </div>
+            </div>
+
+            <div class="comms-panel">
+                <textarea class="message-input" placeholder="Enter radio transmission or dispatch message..." rows="2"></textarea>
+                <div class="quick-actions">
+                    <button class="quick-action-btn">📻 Broadcast All Units</button>
+                    <button class="quick-action-btn">🚨 Request Backup</button>
+                    <button class="quick-action-btn">🚁 Deploy NPAS</button>
+                    <button class="quick-action-btn">🚒 Alert Fire/Ambulance</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel -->
+        <div class="right-panel">
+            <div class="panel-tabs">
+                <button class="panel-tab active" onclick="switchPanelTab('units', this)">Units</button>
+                <button class="panel-tab" onclick="switchPanelTab('intel', this)">Intel</button>
+                <button class="panel-tab" onclick="switchPanelTab('anpr', this)">ANPR</button>
+            </div>
+            
+            <div class="panel-content" id="panelContent">
+                <div class="metric-grid">
+                    <div class="metric-card">
+                        <div class="metric-value">47</div>
+                        <div class="metric-label">Total Units</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">23</div>
+                        <div class="metric-label">Available</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">18</div>
+                        <div class="metric-label">On Scene</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">6</div>
+                        <div class="metric-label">En Route</div>
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <h3>🚔 Patrol Units</h3>
+                    <div class="unit-card">
+                        <div class="unit-header">
+                            <span class="unit-id">ALPHA-7 (MP4217)</span>
+                            <span class="unit-status busy">ON SCENE</span>
+                        </div>
+                        <div class="unit-info">
+                            PC J. Matthews, PC S. Rahman<br>
+                            📍 High Street, Camden<br>
+                            📋 INC-2026-00742 (Armed Robbery)
+                        </div>
+                    </div>
+
+                    <div class="unit-card">
+                        <div class="unit-header">
+                            <span class="unit-id">BRAVO-3 (MP4205)</span>
+                            <span class="unit-status enroute">EN ROUTE</span>
+                        </div>
+                        <div class="unit-info">
+                            PC K. Johnson, PC M. Chen<br>
+                            📍 Approaching Camden High St<br>
+                            📋 INC-2026-00742 (Backup)
+                        </div>
+                    </div>
+
+                    <div class="unit-card">
+                        <div class="unit-header">
+                            <span class="unit-id">CHARLIE-9 (MP4189)</span>
+                            <span class="unit-status available">AVAILABLE</span>
+                        </div>
+                        <div class="unit-info">
+                            PC D. Williams, PC L. Taylor<br>
+                            📍 Patrol - Westminster Area<br>
+                            📋 No active assignment
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <h3>🚓 Response Vehicles</h3>
+                    <div class="unit-card">
+                        <div class="unit-header">
+                            <span class="unit-id">DELTA-2 (MP4223)</span>
+                            <span class="unit-status busy">PURSUIT</span>
+                        </div>
+                        <div class="unit-info">
+                            PC R. Anderson, PC F. O'Brien<br>
+                            📍 A40 Westway<br>
+                            📋 INC-2026-00741 (Vehicle Pursuit)
+                        </div>
+                    </div>
+
+                    <div class="unit-card">
+                        <div class="unit-header">
+                            <span class="unit-id">ECHO-5 (MP4198)</span>
+                            <span class="unit-status enroute">EN ROUTE</span>
+                        </div>
+                        <div class="unit-info">
+                            PS T. Clarke, PC N. Patel<br>
+                            📍 Shepherd's Bush<br>
+                            📋 INC-2026-00741 (Support)
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <h3>🚁 Air Support</h3>
+                    <div class="unit-card">
+                        <div class="unit-header">
+                            <span class="unit-id">NPAS-41</span>
+                            <span class="unit-status busy">DEPLOYED</span>
+                        </div>
+                        <div class="unit-info">
+                            National Police Air Service<br>
+                            📍 Tracking pursuit on A40<br>
+                            🎥 Thermal imaging active
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <h3>🐕 Specialist Units</h3>
+                    <div class="unit-card">
+                        <div class="unit-header">
+                            <span class="unit-id">K9-CHARLIE</span>
+                            <span class="unit-status enroute">EN ROUTE</span>
+                        </div>
+                        <div class="unit-info">
+                            PC H. Davies + PD Max<br>
+                            📍 Heading to Kings Cross<br>
+                            📋 INC-2026-00738 (Weapon Search)
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <h3>📊 Resource Availability</h3>
+                    <div style="margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 11px;">
+                            <span>Patrol Units</span>
+                            <span>23/35 Available</span>
+                        </div>
+                        <div class="resource-bar">
+                            <div class="resource-fill" style="width: 66%;">66%</div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 11px;">
+                            <span>Response Cars</span>
+                            <span>8/12 Available</span>
+                        </div>
+                        <div class="resource-bar">
+                            <div class="resource-fill" style="width: 67%; background: linear-gradient(90deg, #FFC107, #FF9800);">67%</div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 11px;">
+                            <span>Armed Response</span>
+                            <span>2/6 Available</span>
+                        </div>
+                        <div class="resource-bar">
+                            <div class="resource-fill" style="width: 33%; background: linear-gradient(90deg, #F44336, #D32F2F);">33%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let incidentCounter = 742;
+        let activeIncidents = [];
+        let activeUnits = [];
+        let activeView = 'map';
+        let selectedIncident = null;
+
+        // Incident types and locations
+        const incidentTypes = [
+            { type: '🚨 ARMED ROBBERY IN PROGRESS', priority: 1 },
+            { type: '🚗 VEHICLE PURSUIT', priority: 1 },
+            { type: '🔫 SHOTS FIRED', priority: 1 },
+            { type: '🔪 STABBING REPORTED', priority: 1 },
+            { type: '🏠 DOMESTIC DISTURBANCE', priority: 2 },
+            { type: '🚨 BURGLARY ALARM ACTIVATION', priority: 2 },
+            { type: '🔪 WEAPON REPORT', priority: 2 },
+            { type: '👊 ASSAULT IN PROGRESS', priority: 2 },
+            { type: '🚗 TRAFFIC COLLISION - INJURIES', priority: 2 },
+            { type: '🚗 TRAFFIC COLLISION - NO INJURIES', priority: 3 },
+            { type: '🏪 SHOPLIFTING REPORT', priority: 3 },
+            { type: '📞 SUSPICIOUS BEHAVIOUR', priority: 3 },
+            { type: '🚗 ABANDONED VEHICLE', priority: 3 },
+            { type: '🔊 NOISE COMPLAINT', priority: 3 }
+        ];
+
+        const locations = [
+            'High Street, Camden, NW1 7JR',
+            'Oxford Street, Westminster, W1D 1BS',
+            'Kings Cross Station, N1C 4AP',
+            'Westfield Shopping Centre, W12 7GF',
+            'Hyde Park Corner, SW1X 7LY',
+            'Piccadilly Circus, W1J 9HS',
+            'Liverpool Street Station, EC2M 7QH',
+            'Canary Wharf, E14 5AB',
+            'Brixton Road, SW9 6DE',
+            'Hackney Central, E8 1DU'
+        ];
+
+        // Initialize incidents
+        function initializeIncidents() {
+            activeIncidents = [
+                { id: 742, type: '🚨 ARMED ROBBERY IN PROGRESS', location: 'Barclays Bank, 42 High Street, Camden, NW1 7JR', priority: 1, time: '18:34', units: 4, status: 'ACTIVE' },
+                { id: 741, type: '🚗 VEHICLE PURSUIT', location: 'A40 Westway, heading towards Shepherd\'s Bush', priority: 1, time: '18:31', units: 5, status: 'ACTIVE' },
+                { id: 740, type: '🏠 DOMESTIC DISTURBANCE', location: 'Flat 7B, Churchill Gardens Estate, SW1V 3AG', priority: 2, time: '18:28', units: 2, status: 'ACTIVE' },
+                { id: 738, type: '🔪 WEAPON REPORT', location: 'Kings Cross Station, N1C 4AP', priority: 2, time: '18:22', units: 3, status: 'ACTIVE' },
+                { id: 737, type: '🚗 TRAFFIC COLLISION - NO INJURIES', location: 'Junction of Oxford St & Tottenham Court Rd, W1D 1BS', priority: 3, time: '18:15', units: 1, status: 'ACTIVE' },
+                { id: 735, type: '🏪 SHOPLIFTING REPORT', location: 'Tesco Metro, 159 Victoria Street, SW1E 5NA', priority: 3, time: '18:09', units: 0, status: 'QUEUED' },
+                { id: 734, type: '🚨 BURGLARY ALARM ACTIVATION', location: 'JD Sports, Westfield Shopping Centre, W12 7GF', priority: 2, time: '18:03', units: 2, status: 'ACTIVE' }
+            ];
+            renderIncidents();
+        }
+
+        // Render incidents in sidebar
+        function renderIncidents() {
+            const sidebarContent = document.getElementById('sidebarContent');
+            sidebarContent.innerHTML = activeIncidents.map(incident => `
+                <div class="incident-card priority-${incident.priority}" onclick="selectIncident(${incident.id})">
+                    <div class="incident-header">
+                        <span class="incident-id">INC-2026-${String(incident.id).padStart(5, '0')}</span>
+                        <span class="incident-time">${incident.time}</span>
+                    </div>
+                    <div class="incident-type">${incident.type}</div>
+                    <div class="incident-location">📍 ${incident.location}</div>
+                    <div class="incident-footer">
+                        <span class="incident-units">👮 ${incident.units} units ${incident.status === 'QUEUED' ? 'queued' : 'responding'}</span>
+                        <span class="incident-priority">Grade ${incident.priority}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Select incident
+        function selectIncident(id) {
+            selectedIncident = activeIncidents.find(i => i.id === id);
+            if (selectedIncident) {
+                alert(`Incident INC-2026-${String(id).padStart(5, '0')} selected\n\n${selectedIncident.type}\n${selectedIncident.location}\n\nUnits: ${selectedIncident.units}\nPriority: Grade ${selectedIncident.priority}`);
+            }
+        }
+
+        // Generate new incident
+        function generateIncident() {
+            incidentCounter++;
+            const randomType = incidentTypes[Math.floor(Math.random() * incidentTypes.length)];
+            const randomLocation = locations[Math.floor(Math.random() * locations.length)];
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+            
+            const newIncident = {
+                id: incidentCounter,
+                type: randomType.type,
+                location: randomLocation,
+                priority: randomType.priority,
+                time: timeStr,
+                units: 0,
+                status: 'QUEUED'
+            };
+            
+            activeIncidents.unshift(newIncident);
+            if (activeIncidents.length > 15) {
+                activeIncidents.pop();
+            }
+            
+            renderIncidents();
+            updateStats();
+            
+            // Show alert for priority 1
+            if (randomType.priority === 1) {
+                showAlert('🚨 NEW PRIORITY 1 INCIDENT - ' + randomType.type);
+            }
+        }
+
+        // Show alert bar
+        function showAlert(message) {
+            const alertBar = document.getElementById('alertBar');
+            alertBar.textContent = message;
+            alertBar.classList.add('active');
+            setTimeout(() => {
+                alertBar.classList.remove('active');
+            }, 5000);
+        }
+
+        // Update statistics
+        function updateStats() {
+            const liveIncidents = activeIncidents.filter(i => i.status === 'ACTIVE').length;
+            document.querySelectorAll('.status-value')[3].textContent = liveIncidents;
+        }
+
+        // Switch sidebar tabs
+        function switchSidebarTab(tab, element) {
+            document.querySelectorAll('.sidebar-tab').forEach(t => t.classList.remove('active'));
+            element.classList.add('active');
+            
+            const sidebarContent = document.getElementById('sidebarContent');
+            
+            if (tab === 'queue') {
+                const queuedIncidents = activeIncidents.filter(i => i.status === 'QUEUED');
+                sidebarContent.innerHTML = queuedIncidents.length > 0 ? queuedIncidents.map(incident => `
+                    <div class="incident-card priority-${incident.priority}">
+                        <div class="incident-header">
+                            <span class="incident-id">INC-2026-${String(incident.id).padStart(5, '0')}</span>
+                            <span class="incident-time">${incident.time}</span>
+                        </div>
+                        <div class="incident-type">${incident.type}</div>
+                        <div class="incident-location">📍 ${incident.location}</div>
+                        <div class="incident-footer">
+                            <span class="incident-units">⏳ Awaiting dispatch</span>
+                            <span class="incident-priority">Grade ${incident.priority}</span>
+                        </div>
+                    </div>
+                `).join('') : '<div style="text-align: center; color: #90CAF9; padding: 20px;">No incidents in queue</div>';
+            } else if (tab === 'history') {
+                sidebarContent.innerHTML = `
+                    <div class="info-section">
+                        <h3>📜 Recent Closures</h3>
+                        <div class="timeline-event">
+                            <div class="timeline-time">18:05 - Closed</div>
+                            <div class="timeline-desc">INC-2026-00733 - Traffic Stop - Warning Issued</div>
+                        </div>
+                        <div class="timeline-event">
+                            <div class="timeline-time">17:52 - Closed</div>
+                            <div class="timeline-desc">INC-2026-00732 - Theft Report - Crime Number Issued</div>
+                        </div>
+                        <div class="timeline-event">
+                            <div class="timeline-time">17:48 - Closed</div>
+                            <div class="timeline-desc">INC-2026-00731 - Public Order - No Further Action</div>
+                        </div>
+                        <div class="timeline-event">
+                            <div class="timeline-time">17:35 - Closed</div>
+                            <div class="timeline-desc">INC-2026-00729 - RTC - Insurance Exchange Completed</div>
+                        </div>
+                        <div class="timeline-event">
+                            <div class="timeline-time">17:22 - Closed</div>
+                            <div class="timeline-desc">INC-2026-00727 - Welfare Check - All In Order</div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                renderIncidents();
+            }
+        }
+
+        // Switch panel tabs
+        function switchPanelTab(tab, element) {
+            document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('active'));
+            element.classList.add('active');
+            
+            const panelContent = document.getElementById('panelContent');
+            
+            if (tab === 'intel') {
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+                panelContent.innerHTML = `
+                    <div class="info-section">
+                        <h3>🔍 Live Intelligence Feed</h3>
+                        <div class="intel-feed high-priority">
+                            <div class="intel-timestamp">${timeStr} - PRIORITY ALERT</div>
+                            <div class="intel-content">
+                                <strong>PNC Hit:</strong> Vehicle reg AE12 FGH flagged as stolen. Last seen heading north on M1 at Junction 5.
+                            </div>
+                        </div>
+
+                        <div class="intel-feed">
+                            <div class="intel-timestamp">18:38 - Intelligence Report</div>
+                            <div class="intel-content">
+                                Local informant reports increased drug activity in Hackney area. CID notified for surveillance operation.
+                            </div>
+                        </div>
+
+                        <div class="intel-feed">
+                            <div class="intel-timestamp">18:31 - Social Media Monitor</div>
+                            <div class="intel-content">
+                                Large gathering reported via Twitter at Hyde Park. Monitoring for disorder. No police action required at present.
+                            </div>
+                        </div>
+
+                        <div class="intel-feed high-priority">
+                            <div class="intel-timestamp">18:25 - Serious Crime Alert</div>
+                            <div class="intel-content">
+                                <strong>Wanted Person Alert:</strong> James Morrison, wanted for GBH, spotted in Brixton area. Armed. Approach with caution.
+                            </div>
+                        </div>
+
+                        <div class="intel-feed">
+                            <div class="intel-timestamp">18:19 - Counter Terrorism</div>
+                            <div class="intel-content">
+                                Routine threat level remains SUBSTANTIAL. No specific intelligence for London at this time.
+                            </div>
+                        </div>
+
+                        <div class="intel-feed">
+                            <div class="intel-timestamp">18:12 - Gang Intelligence</div>
+                            <div class="intel-content">
+                                Nominals associated with [REDACTED] gang active in Southwark. Increased patrols authorized.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-section">
+                        <h3>📡 Partner Agency Feeds</h3>
+                        <div class="info-row">
+                            <span class="info-label">London Fire Brigade</span>
+                            <span class="info-value" style="color: #4CAF50;">3 Active</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">London Ambulance</span>
+                            <span class="info-value" style="color: #FFC107;">12 Active</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">BTP (British Transport)</span>
+                            <span class="info-value" style="color: #4CAF50;">2 Active</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">City of London Police</span>
+                            <span class="info-value" style="color: #4CAF50;">1 Active</span>
+                        </div>
+                    </div>
+
+                    <div class="info-section">
+                        <h3>⚠️ Risk Assessments</h3>
+                        <div class="info-row">
+                            <span class="info-label">Terrorism Threat</span>
+                            <span class="info-value" style="color: #FFC107;">SUBSTANTIAL</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Public Order Risk</span>
+                            <span class="info-value" style="color: #4CAF50;">LOW</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Violent Crime Index</span>
+                            <span class="info-value" style="color: #FFC107;">MODERATE</span>
+                        </div>
+                    </div>
+                `;
+            } else if (tab === 'anpr') {
+                panelContent.innerHTML = `
+                    <div class="info-section">
+                        <h3>📡 ANPR Network Status</h3>
+                        <div class="info-row">
+                            <span class="info-label">Active Cameras</span>
+                            <span class="info-value" style="color: #4CAF50;">247 / 250</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Reads (Last Hour)</span>
+                            <span class="info-value">45,782</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Hits (Last Hour)</span>
+                            <span class="info-value" style="color: #F44336;">17</span>
+                        </div>
+                    </div>
+
+                    <div class="anpr-alert">
+                        <div class="anpr-plate">LX19 TGF</div>
+                        <div class="anpr-details">
+                            <strong>🚨 PRIORITY HIT - STOLEN VEHICLE</strong><br>
+                            Camera: A40-WEST-042<br>
+                            Location: Westway, near Shepherd's Bush<br>
+                            Time: 18:42:17<br>
+                            Direction: Westbound<br>
+                            Speed: 67 MPH<br>
+                            <strong>Action: Units in pursuit (INC-2026-00741)</strong>
+                        </div>
+                    </div>
+
+                    <div class="info-section">
+                        <h3>🔍 Recent ANPR Hits</h3>
+                        
+                        <div class="intel-feed high-priority">
+                            <div class="intel-timestamp">18:39 - M1-NORTH-087</div>
+                            <div class="intel-content">
+                                <strong>AE12 FGH</strong> - Stolen Vehicle<br>
+                                No insurance, MOT expired<br>
+                                Heading north on M1
+                            </div>
+                        </div>
+
+                        <div class="intel-feed">
+                            <div class="intel-timestamp">18:35 - CAM-HIGH-023</div>
+                            <div class="intel-content">
+                                <strong>BD65 KLM</strong> - No Insurance<br>
+                                Unit dispatched for stop check
+                            </div>
+                        </div>
+
+                        <div class="intel-feed high-priority">
+                            <div class="intel-timestamp">18:28 - A2-EAST-156</div>
+                            <div class="intel-content">
+                                <strong>CF17 NPQ</strong> - Wanted Vehicle<br>
+                                Connected to armed robbery<br>
+                                Armed response notified
+                            </div>
+                        </div>
+
+                        <div class="intel-feed">
+                            <div class="intel-timestamp">18:22 - WEST-END-091</div>
+                            <div class="intel-content">
+                                <strong>DG19 RST</strong> - Cloned Plates<br>
+                                Suspicious movement pattern<br>
+                                Under observation
+                            </div>
+                        </div>
+
+                        <div class="intel-feed">
+                            <div class="intel-timestamp">18:15 - M25-SOUTH-203</div>
+                            <div class="intel-content">
+                                <strong>EH20 UVW</strong> - No MOT<br>
+                                Officer stop completed<br>
+                                Fixed Penalty Notice issued
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-section">
+                        <h3>📊 ANPR Statistics (24h)</h3>
+                        <div class="info-row">
+                            <span class="info-label">Total Reads</span>
+                            <span class="info-value">1,247,893</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">PNC Hits</span>
+                            <span class="info-value" style="color: #F44336;">427</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">No Insurance</span>
+                            <span class="info-value">189</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Stolen Vehicles</span>
+                            <span class="info-value" style="color: #F44336;">23</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Wanted Vehicles</span>
+                            <span class="info-value" style="color: #F44336;">12</span>
+                        </div>
+                    </div>
+                `;
+            } else {
+                loadUnitsView();
+            }
+        }
+
+        // Load units view
+        function loadUnitsView() {
+            const panelContent = document.getElementById('panelContent');
+            panelContent.innerHTML = `
+                <div class="metric-grid">
+                    <div class="metric-card">
+                        <div class="metric-value">47</div>
+                        <div class="metric-label">Total Units</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">23</div>
+                        <div class="metric-label">Available</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">18</div>
+                        <div class="metric-label">On Scene</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">6</div>
+                        <div class="metric-label">En Route</div>
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <h3>🚔 Patrol Units</h3>
+                    <div class="unit-card">
+                        <div class="unit-header">
+                            <span class="unit-id">ALPHA-7 (MP4217)</span>
+                            <span class="unit-status busy">ON SCENE</span>
+                        </div>
+                        <div class="unit-info">
+                            PC J. Matthews, PC S. Rahman<br>
+                            📍 High Street, Camden<br>
+                            📋 INC-2026-00742 (Armed Robbery)
+                        </div>
+                    </div>
+
+                    <div class="unit-card">
+                        <div class="unit-header">
+                            <span class="unit-id">BRAVO-3 (MP4205)</span>
+                            <span class="unit-status enroute">EN ROUTE</span>
+                        </div>
+                        <div class="unit-info">
+                            PC K. Johnson, PC M. Chen<br>
+                            📍 Approaching Camden High St<br>
+                            📋 INC-2026-00742 (Backup)
+                        </div>
+                    </div>
+
+                    <div class="unit-card">
+                        <div class="unit-header">
+                            <span class="unit-id">CHARLIE-9 (MP4189)</span>
+                            <span class="unit-status available">AVAILABLE</span>
+                        </div>
+                        <div class="unit-info">
+                            PC D. Williams, PC L. Taylor<br>
+                            📍 Patrol - Westminster Area<br>
+                            📋 No active assignment
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <h3>🚓 Response Vehicles</h3>
+                    <div class="unit-card">
+                        <div class="unit-header">
+                            <span class="unit-id">DELTA-2 (MP4223)</span>
+                            <span class="unit-status busy">PURSUIT</span>
+                        </div>
+                        <div class="unit-info">
+                            PC R. Anderson, PC F. O'Brien<br>
+                            📍 A40 Westway<br>
+                            📋 INC-2026-00741 (Vehicle Pursuit)
+                        </div>
+                    </div>
+
+                    <div class="unit-card">
+                        <div class="unit-header">
+                            <span class="unit-id">ECHO-5 (MP4198)</span>
+                            <span class="unit-status enroute">EN ROUTE</span>
+                        </div>
+                        <div class="unit-info">
+                            PS T. Clarke, PC N. Patel<br>
+                            📍 Shepherd's Bush<br>
+                            📋 INC-2026-00741 (Support)
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <h3>🚁 Air Support</h3>
+                    <div class="unit-card">
+                        <div class="unit-header">
+                            <span class="unit-id">NPAS-41</span>
+                            <span class="unit-status busy">DEPLOYED</span>
+                        </div>
+                        <div class="unit-info">
+                            National Police Air Service<br>
+                            📍 Tracking pursuit on A40<br>
+                            🎥 Thermal imaging active
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <h3>🐕 Specialist Units</h3>
+                    <div class="unit-card">
+                        <div class="unit-header">
+                            <span class="unit-id">K9-CHARLIE</span>
+                            <span class="unit-status enroute">EN ROUTE</span>
+                        </div>
+                        <div class="unit-info">
+                            PC H. Davies + PD Max<br>
+                            📍 Heading to Kings Cross<br>
+                            📋 INC-2026-00738 (Weapon Search)
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <h3>📊 Resource Availability</h3>
+                    <div style="margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 11px;">
+                            <span>Patrol Units</span>
+                            <span>23/35 Available</span>
+                        </div>
+                        <div class="resource-bar">
+                            <div class="resource-fill" style="width: 66%;">66%</div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 11px;">
+                            <span>Response Cars</span>
+                            <span>8/12 Available</span>
+                        </div>
+                        <div class="resource-bar">
+                            <div class="resource-fill" style="width: 67%; background: linear-gradient(90deg, #FFC107, #FF9800);">67%</div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 11px;">
+                            <span>Armed Response</span>
+                            <span>2/6 Available</span>
+                        </div>
+                        <div class="resource-bar">
+                            <div class="resource-fill" style="width: 33%; background: linear-gradient(90deg, #F44336, #D32F2F);">33%</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Map view controls
+        const mapViews = ['map', 'cctv', 'heat', 'npas', 'traffic', 'anpr', 'risk'];
+        let currentMapView = 'map';
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const mapButtons = document.querySelectorAll('.map-controls .control-btn');
+            mapButtons.forEach((btn, index) => {
+                if (index < 7) {
+                    btn.addEventListener('click', function() {
+                        mapButtons.forEach(b => b.classList.remove('active'));
+                        this.classList.add('active');
+                        currentMapView = mapViews[index];
+                        console.log('Switched to view:', currentMapView);
+                    });
+                }
+            });
+
+            // Quick action buttons
+            const quickActionBtns = document.querySelectorAll('.quick-action-btn');
+            quickActionBtns[0].addEventListener('click', () => alert('📻 Broadcasting to all units...'));
+            quickActionBtns[1].addEventListener('click', () => alert('🚨 Requesting backup units...'));
+            quickActionBtns[2].addEventListener('click', () => alert('🚁 Deploying NPAS helicopter...'));
+            quickActionBtns[3].addEventListener('click', () => alert('🚒 Alerting Fire/Ambulance services...'));
+        });
+
+        // Simulate incoming incidents every 20-40 seconds
+        setInterval(() => {
+            const shouldAddIncident = Math.random() > 0.5;
+            if (shouldAddIncident) {
+                generateIncident();
+            }
+        }, 25000);
+
+        // Animate map markers
+        setInterval(() => {
+            document.querySelectorAll('.marker-unit').forEach(marker => {
+                const randomX = Math.random() * 3 - 1.5;
+                const randomY = Math.random() * 3 - 1.5;
+                const currentLeft = parseFloat(marker.style.left);
+                const currentTop = parseFloat(marker.style.top);
+                
+                let newLeft = currentLeft + randomX;
+                let newTop = currentTop + randomY;
+                
+                // Keep markers within bounds
+                newLeft = Math.max(5, Math.min(95, newLeft));
+                newTop = Math.max(5, Math.min(95, newTop));
+                
+                marker.style.left = newLeft + '%';
+                marker.style.top = newTop + '%';
+            });
+        }, 3000);
+
+        // Initialize on load
+        window.addEventListener('load', () => {
+            initializeIncidents();
+            console.log('🚔 GENESIS CAD System Initialized');
+            console.log('📡 All systems operational');
+            console.log('🔐 Secure connection established');
+            console.log('💡 Click incidents to select them');
+            console.log('💡 New incidents generate automatically');
+        });
+    </script>
+</body>
+</html>
